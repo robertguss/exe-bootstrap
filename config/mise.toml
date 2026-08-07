@@ -42,6 +42,8 @@ atuin = "latest"
 lazygit = "latest"
 delta = "latest"
 age = "latest"
+# LazyVim needs Neovim >= 0.11.2; apt on Ubuntu is often older — always use mise
+neovim = "latest"
 
 [settings]
 experimental = true

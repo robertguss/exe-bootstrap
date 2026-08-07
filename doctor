@@ -163,7 +163,31 @@ fi
 
 # --- Editor / mux / agents ---
 info "editor & agents"
-if have nvim; then pass "nvim $(nvim --version 2>/dev/null | head -1)"; else fail "nvim missing"; fi
+# LazyVim requires Neovim >= 0.11.2; system apt packages are often older.
+NVIM_MIN="0.11.2"
+_nvim_ver() {
+  nvim --version 2>/dev/null | head -1 | sed -n 's/.*v\([0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\).*/\1/p'
+}
+_ver_ge() { printf '%s\n%s\n' "$2" "$1" | sort -C -V; }
+if have nvim; then
+  _nv="$(_nvim_ver)"
+  _np="$(command -v nvim)"
+  if _ver_ge "$_nv" "$NVIM_MIN"; then
+    pass "nvim $(nvim --version 2>/dev/null | head -1) (${_np})"
+    # Prefer mise / ~/.local over system apt binary
+    case "$_np" in
+      "${HOME}/.local/"*|*mise*) ;;
+      /usr/bin/nvim|/bin/nvim)
+        warn "nvim is system binary ($_np) — re-run ./install --only 40-neovim-lazyvim so mise wins on PATH"
+        ;;
+    esac
+  else
+    fail "nvim too old for LazyVim (need >= ${NVIM_MIN}, got ${_nv:-unknown} at $_np)"
+  fi
+  unset _nv _np
+else
+  fail "nvim missing"
+fi
 if [[ -f "${HOME}/.config/nvim/init.lua" ]] || [[ -d "${HOME}/.config/nvim/lua" ]]; then
   pass "nvim config present"
 else
