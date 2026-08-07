@@ -43,7 +43,8 @@ Then complete **[After install: required & optional steps](#after-install-requir
 | **Shell** | zsh (default login shell), Oh My Zsh, plugins (`git`, `zsh-autosuggestions`, `zsh-syntax-highlighting`), **starship**, **atuin**, **zoxide** |
 | **Secrets** | **fnox** + **age** (generates a fresh key at `~/.config/fnox/age.txt` if missing) |
 | **Toolchain** | **mise** managing Node (latest LTS), Python, Go, Rust, Ruby, Erlang, Elixir |
-| **Node** | **aube** package manager |
+| **Node** | **aube** package manager (works with existing lockfiles; no global pnpm/bun) |
+| **Tasks** | **just** (`j` / `jl` aliases) |
 | **Python / Astral** | **uv**, **ruff**, **ty**, **pipx**, **cookiecutter** (`npp` alias) |
 | **CLI** | ripgrep, fd, fzf, bat, eza, jq, yq, htop, tree, tmux, **trash-cli** |
 | **Ops** | **lazydocker**, **bottom** (`btm`), **btop**, **dust**, **dua** |
@@ -287,6 +288,7 @@ Use after every fresh install and when something “feels wrong.”
 | **difftastic** | `difft` — structural diffs (opt-in; delta remains default pager) |
 | **AGENTS.md** | `cp templates/AGENTS.md ./AGENTS.md` in each project |
 | **uv / ruff / ty** | Astral stack — see [docs/astral.md](docs/astral.md); aliases `rc` / `rcf` / `rf` for ruff |
+| **just** | Command runner — `just` / `j` / `jl` (`just --list`); see [docs/just.md](docs/just.md) |
 | **Starship** | Config is linked from `home/starship.toml` → `~/.config/starship.toml`; edit in repo or replace link |
 | **Personal aliases** | Edit `home/aliases.zsh` in the repo, or use `~/.zshrc.local` for this VM only |
 | **Default shell failed?** | `sudo chsh -s "$(command -v zsh)" "$USER"` then re-login |

@@ -37,3 +37,6 @@ difftastic
 uv
 ruff
 ty
+
+# Task runner
+just

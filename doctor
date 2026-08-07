@@ -100,6 +100,7 @@ info "astral"
 if have uv; then pass "uv $(uv --version 2>/dev/null | head -1)"; else fail "uv missing (./install --only 23-astral)"; fi
 if have ruff; then pass "ruff $(ruff --version 2>/dev/null | head -1)"; else fail "ruff missing (./install --only 23-astral)"; fi
 if have ty; then pass "ty $(ty --version 2>/dev/null | head -1)"; else fail "ty missing (./install --only 23-astral)"; fi
+if have just; then pass "just $(just --version 2>/dev/null | head -1)"; else fail "just missing (./install --only 30-cli-tools or mise use -g just)"; fi
 
 # --- CLI UX ---
 info "cli tools"

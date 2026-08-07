@@ -43,6 +43,10 @@ command -v ruff >/dev/null 2>&1 && alias rc="ruff check"
 command -v ruff >/dev/null 2>&1 && alias rcf="ruff check --fix"
 command -v ruff >/dev/null 2>&1 && alias rf="ruff format"
 
+# just — list recipes quickly
+command -v just >/dev/null 2>&1 && alias j="just"
+command -v just >/dev/null 2>&1 && alias jl="just --list"
+
 # Agent DX (Lane C)
 # Prefer `ast-grep` — on Linux /bin/sg is "shadow group", not ast-grep
 if command -v ast-grep >/dev/null 2>&1; then

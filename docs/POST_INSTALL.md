@@ -45,6 +45,7 @@ devin --version && devin
 - **hk** — already on PATH; enable per repo with `hk install --mise` (see [hk.md](hk.md))  
 - **Agent DX** — `ast-grep`, `gitleaks`, `git-absorb`, `difft`; copy `templates/AGENTS.md` into projects ([agent-dx.md](agent-dx.md))  
 - **Astral** — `uv`, `ruff`, `ty` ([astral.md](astral.md))  
+- **just** — `just` / `j` / `jl` ([just.md](just.md)); Node installs via **aube**, not global pnpm/bun  
 - Edit `~/.zshrc.local` for machine-only tweaks  
 - `ssh exe.dev share port …` when exposing dev servers  
 - Starship: `home/starship.toml` in the repo  
