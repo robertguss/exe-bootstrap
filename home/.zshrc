@@ -1,6 +1,10 @@
 # ~/.zshrc — managed by exe-bootstrap (module 90-dotfiles)
 # Personal extras: put them in ~/.zshrc.local (sourced at end if present).
 
+# Keep $SHELL accurate so children (herdr panes, terminal multiplexers, etc.) spawn zsh
+# even when this zsh was started from a parent that still had SHELL=/bin/bash after chsh.
+export SHELL="${commands[zsh]:-$(command -v zsh 2>/dev/null || echo /bin/zsh)}"
+
 export ZSH="${HOME}/.oh-my-zsh"
 
 # Prompt is Starship (loaded below). Keep OMZ theme empty to avoid double prompts.

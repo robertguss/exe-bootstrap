@@ -47,13 +47,35 @@ echo
 
 # --- Shell ---
 info "shell"
-if [[ "$(getent passwd "$USER" | cut -d: -f7)" == *zsh ]]; then
-  pass "login shell is zsh"
+_login_shell="$(getent passwd "$USER" | cut -d: -f7 2>/dev/null || echo '')"
+if [[ "$_login_shell" == *zsh ]]; then
+  pass "login shell is zsh ($_login_shell)"
 else
   fail "login shell is not zsh (run: sudo chsh -s \"\$(command -v zsh)\" \$USER)"
 fi
 if have zsh; then pass "zsh on PATH: $(command -v zsh)"; else fail "zsh missing"; fi
 if [[ -d "${HOME}/.oh-my-zsh" ]]; then pass "Oh My Zsh installed"; else fail "Oh My Zsh missing"; fi
+# $SHELL can lag behind passwd after chsh; tools like herdr use $SHELL for new panes.
+if [[ "${SHELL:-}" == *zsh ]]; then
+  pass "SHELL env is zsh ($SHELL)"
+elif [[ "$_login_shell" == *zsh ]]; then
+  warn "SHELL env is '${SHELL:-unset}' (not zsh) — run: export SHELL=\$(command -v zsh) && exec zsh"
+  warn "  (or restart herdr after: herdr server stop)"
+else
+  warn "SHELL env is '${SHELL:-unset}'"
+fi
+# Interactive bash should auto-exec zsh when login shell is zsh (module 10-zsh-omz).
+if [[ -f "${HOME}/.bashrc" ]] && grep -qF "exe-bootstrap-zsh-default" "${HOME}/.bashrc" 2>/dev/null; then
+  pass "~/.bashrc has zsh default bridge (exe-bootstrap-zsh-default)"
+else
+  warn "~/.bashrc missing zsh default bridge (re-run: ./install --only 10-zsh-omz)"
+fi
+if [[ -f "${HOME}/.zshrc" ]] && grep -qE 'export SHELL=' "${HOME}/.zshrc" 2>/dev/null; then
+  pass "~/.zshrc exports SHELL for child processes"
+else
+  warn "~/.zshrc does not export SHELL (pull latest home/.zshrc and re-run ./install --only 90-dotfiles)"
+fi
+unset _login_shell
 
 # --- Dotfiles ---
 info "dotfiles"

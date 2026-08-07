@@ -40,7 +40,7 @@ Then complete **[After install: required & optional steps](#after-install-requir
 
 | Area | Tools |
 |------|--------|
-| **Shell** | zsh (default login shell), Oh My Zsh, plugins (`git`, `zsh-autosuggestions`, `zsh-syntax-highlighting`), **starship**, **atuin**, **zoxide** |
+| **Shell** | zsh as default (login shell + `$SHELL` + interactive bash auto-switch), Oh My Zsh, plugins (`git`, `zsh-autosuggestions`, `zsh-syntax-highlighting`), **starship**, **atuin**, **zoxide** |
 | **Secrets** | **fnox** + **age** (generates a fresh key at `~/.config/fnox/age.txt` if missing) |
 | **Toolchain** | **mise** managing Node (latest LTS), Python, Go, Rust, Ruby, Erlang, Elixir |
 | **Node** | **aube** package manager (works with existing lockfiles; no global pnpm/bun) |
@@ -96,10 +96,13 @@ exec zsh
 # or disconnect and SSH back in
 ```
 
+Install sets the **login shell** to zsh, exports **`SHELL`** during install, and adds a **`~/.bashrc` bridge** so interactive bash (including tools that spawn `$SHELL=/bin/bash` after `chsh`, e.g. herdr panes) auto-execs zsh. New SSH logins get zsh from passwd.
+
 Confirm:
 
 ```bash
 echo $SHELL          # should end with /zsh
+echo $0              # should be -zsh or zsh
 mise --version
 node -v              # LTS via mise
 which grok nvim herdr fnox hk
@@ -296,7 +299,8 @@ Use after every fresh install and when something “feels wrong.”
 | **just** | Command runner — `just` / `j` / `jl` (`just --list`); see [docs/just.md](docs/just.md) |
 | **Starship** | Config is linked from `home/starship.toml` → `~/.config/starship.toml`; edit in repo or replace link |
 | **Personal aliases** | Edit `home/aliases.zsh` in the repo, or use `~/.zshrc.local` for this VM only |
-| **Default shell failed?** | `sudo chsh -s "$(command -v zsh)" "$USER"` then re-login |
+| **Default shell failed?** | `sudo chsh -s "$(command -v zsh)" "$USER"` then `export SHELL=$(command -v zsh) && exec zsh` (re-login or `herdr server stop` if panes still bash) |
+| **herdr panes are bash?** | Stale `$SHELL` in the herdr server. Fix: `export SHELL=$(command -v zsh)`, `herdr server stop`, re-run `herdr`. Re-run `./install --only 10-zsh-omz` for the bash→zsh bridge. |
 | **Docker** | Usually preinstalled on exe.dev; user often already in `docker` group |
 | **exe.dev HTTP proxy** | Dev servers: see [Next.js/Vite notes](https://exe.dev/docs/faq/nextjs-and-friends.md); share port with `ssh exe.dev share port <vm> <port>` |
 | **Auto setup-script** | Not enabled by default; see [Optional first-boot script](#optional-exedev-first-boot-script) |
