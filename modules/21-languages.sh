@@ -8,13 +8,28 @@ run() {
     return 1
   fi
 
-  # Ensure core languages from config
+  # Ensure core languages from config (erlang before elixir)
   log "ensuring language runtimes via mise"
-  mise install node@lts python go rust ruby elixir 2>/dev/null || \
+  mise install erlang || warn "erlang install had issues"
+  mise use -g erlang 2>/dev/null || true
+  mise install node@lts python go rust ruby elixir || \
     mise install || warn "some language installs failed"
+  mise reshim 2>/dev/null || true
 
   # Activate for current shell session paths
   eval "$(mise activate bash)" 2>/dev/null || true
+  hash -r 2>/dev/null || true
+
+  if have erl || have erlc; then
+    ok "erlang available"
+  else
+    warn "erlang not on PATH yet — open a new shell or: eval \"\$(mise activate bash)\""
+  fi
+  if have elixir; then
+    ok "elixir available"
+  else
+    warn "elixir not on PATH yet"
+  fi
 
   # uv — fast Python package manager
   if have uv; then

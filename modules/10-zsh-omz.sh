@@ -5,15 +5,20 @@ run() {
   apt_install zsh
 
   # Default shell to zsh if not already
-  local current
+  local current zsh_path
+  zsh_path="$(command -v zsh)"
   current="$(getent passwd "$USER" | cut -d: -f7 || true)"
-  if [[ "$current" != "$(command -v zsh)" ]]; then
-    if have chsh; then
-      log "setting default shell to zsh"
-      chsh -s "$(command -v zsh)" "$USER" 2>/dev/null || warn "chsh failed (set shell manually)"
-    fi
-  else
+  if [[ "$current" == "$zsh_path" ]]; then
     skip "default shell already zsh"
+  else
+    log "setting default shell to zsh"
+    if chsh -s "$zsh_path" "$USER" 2>/dev/null; then
+      ok "default shell -> zsh"
+    elif need_sudo "chsh" && "${SUDO[@]}" chsh -s "$zsh_path" "$USER" 2>/dev/null; then
+      ok "default shell -> zsh (via sudo)"
+    else
+      warn "could not chsh to zsh — run: sudo chsh -s $(command -v zsh) $USER"
+    fi
   fi
 
   export ZSH="${ZSH:-${HOME}/.oh-my-zsh}"

@@ -16,11 +16,14 @@ run() {
 
   # --- Devin CLI ---
   if have devin; then
-    skip "Devin CLI present"
+    skip "Devin CLI present: $(devin --version 2>/dev/null | head -1 || echo yes)"
   else
     log "installing Devin CLI"
-    if curl -fsSL https://cli.devin.ai/install.sh | bash; then
-      ok "Devin CLI installed (run 'devin' to auth)"
+    # Installer may prompt login interactively and exit non-zero; binary is what matters.
+    curl -fsSL https://cli.devin.ai/install.sh | bash || true
+    export PATH="${HOME}/.local/bin:${PATH}"
+    if have devin; then
+      ok "Devin CLI installed (run 'devin' to auth interactively)"
     else
       warn "Devin CLI install failed — see https://docs.devin.ai/cli"
     fi

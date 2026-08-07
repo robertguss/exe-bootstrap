@@ -36,21 +36,21 @@ run() {
     mise use -g "$t" 2>/dev/null || true
   done
 
-  # fzf keybindings if installed via apt as fallback
-  if ! have fzf; then
-    apt_install fzf || true
-  fi
-  if ! have bat; then
+  # Reshim so `have` sees mise tools
+  mise reshim 2>/dev/null || true
+  hash -r 2>/dev/null || true
+
+  # Apt fallbacks only if still missing after mise
+  _need() { ! have "$1"; }
+  if _need fzf; then apt_install fzf || true; fi
+  if _need bat && ! have batcat; then
     apt_install bat || true
-    # Debian packages bat as batcat
-    if have batcat && [[ ! -e "${HOME}/.local/bin/bat" ]]; then
-      ln -sfn "$(command -v batcat)" "${HOME}/.local/bin/bat"
-    fi
   fi
-  if ! have rg; then
-    apt_install ripgrep || true
+  if have batcat && ! have bat && [[ ! -e "${HOME}/.local/bin/bat" ]]; then
+    ln -sfn "$(command -v batcat)" "${HOME}/.local/bin/bat"
   fi
-  if ! have fd && ! have fdfind; then
+  if _need rg; then apt_install ripgrep || true; fi
+  if _need fd && ! have fdfind; then
     apt_install fd-find || true
     if have fdfind && [[ ! -e "${HOME}/.local/bin/fd" ]]; then
       ln -sfn "$(command -v fdfind)" "${HOME}/.local/bin/fd"

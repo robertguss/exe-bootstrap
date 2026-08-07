@@ -1,5 +1,6 @@
-# Global mise config installed to ~/.config/mise/config.toml
+# Global mise config (linked to ~/.config/mise/config.toml)
 # Node: latest LTS. Everything else: latest stable.
+# CLI tools listed here are installed by modules via `mise use -g`.
 
 [tools]
 node = "lts"
@@ -7,9 +8,24 @@ python = "latest"
 go = "latest"
 rust = "latest"
 ruby = "latest"
+# Elixir needs Erlang/OTP on PATH
+erlang = "latest"
 elixir = "latest"
 fnox = "latest"
 usage = "latest"
+aube = "latest"
+ripgrep = "latest"
+fd = "latest"
+fzf = "latest"
+bat = "latest"
+eza = "latest"
+jq = "latest"
+yq = "latest"
+zoxide = "latest"
+starship = "latest"
+lazygit = "latest"
+delta = "latest"
+age = "latest"
 
 [settings]
 experimental = true

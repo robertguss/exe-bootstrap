@@ -22,7 +22,9 @@ export EDITOR="nvim"
 export VISUAL="nvim"
 
 # PATH: user bins
-export PATH="${HOME}/bin:${HOME}/.local/bin:${HOME}/go/bin:${PATH}"
+export PATH="${HOME}/bin:${HOME}/.local/bin:${HOME}/.atuin/bin:${HOME}/go/bin:${PATH}"
+# Rust / cargo
+[[ -f "${HOME}/.cargo/env" ]] && source "${HOME}/.cargo/env"
 # Grok Build
 export PATH="${HOME}/.grok/bin:${PATH}"
 
