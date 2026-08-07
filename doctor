@@ -93,8 +93,13 @@ if have ruby; then pass "ruby $(ruby -v 2>/dev/null | awk '{print $2}')"; else w
 if have erl || have erlc; then pass "erlang present"; else warn "erlang missing (needed for elixir)"; fi
 if have elixir; then pass "elixir $(elixir --version 2>/dev/null | tail -1)"; else warn "elixir missing"; fi
 if have aube; then pass "aube $(aube --version 2>/dev/null | head -1)"; else warn "aube missing"; fi
-if have uv; then pass "uv $(uv --version 2>/dev/null | head -1)"; else warn "uv missing"; fi
 if have hk; then pass "hk $(hk --version 2>/dev/null | head -1)"; else fail "hk missing (./install --only 25-hk)"; fi
+
+# --- Astral Python DX ---
+info "astral"
+if have uv; then pass "uv $(uv --version 2>/dev/null | head -1)"; else fail "uv missing (./install --only 23-astral)"; fi
+if have ruff; then pass "ruff $(ruff --version 2>/dev/null | head -1)"; else fail "ruff missing (./install --only 23-astral)"; fi
+if have ty; then pass "ty $(ty --version 2>/dev/null | head -1)"; else fail "ty missing (./install --only 23-astral)"; fi
 
 # --- CLI UX ---
 info "cli tools"

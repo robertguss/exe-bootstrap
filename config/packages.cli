@@ -32,3 +32,8 @@ ast-grep
 gitleaks
 difftastic
 # git-absorb: aqua:tummychow/git-absorb (see module 33-agent-dx / mise.toml)
+
+# Astral (also module 23-astral)
+uv
+ruff
+ty

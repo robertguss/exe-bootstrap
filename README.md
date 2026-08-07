@@ -44,7 +44,7 @@ Then complete **[After install: required & optional steps](#after-install-requir
 | **Secrets** | **fnox** + **age** (generates a fresh key at `~/.config/fnox/age.txt` if missing) |
 | **Toolchain** | **mise** managing Node (latest LTS), Python, Go, Rust, Ruby, Erlang, Elixir |
 | **Node** | **aube** package manager |
-| **Python** | **uv**, **pipx**, **cookiecutter** (for `npp` alias) |
+| **Python / Astral** | **uv**, **ruff**, **ty**, **pipx**, **cookiecutter** (`npp` alias) |
 | **CLI** | ripgrep, fd, fzf, bat, eza, jq, yq, htop, tree, tmux, **trash-cli** |
 | **Ops** | **lazydocker**, **bottom** (`btm`), **btop**, **dust**, **dua** |
 | **Agent DX** | **ast-grep** (`sg`), **gitleaks**, **git-absorb**, **difftastic** (`difft`), **AGENTS.md** templates |
@@ -286,6 +286,7 @@ Use after every fresh install and when something “feels wrong.”
 | **git-absorb** | Fold fixups into right commits on feature branches |
 | **difftastic** | `difft` — structural diffs (opt-in; delta remains default pager) |
 | **AGENTS.md** | `cp templates/AGENTS.md ./AGENTS.md` in each project |
+| **uv / ruff / ty** | Astral stack — see [docs/astral.md](docs/astral.md); aliases `rc` / `rcf` / `rf` for ruff |
 | **Starship** | Config is linked from `home/starship.toml` → `~/.config/starship.toml`; edit in repo or replace link |
 | **Personal aliases** | Edit `home/aliases.zsh` in the repo, or use `~/.zshrc.local` for this VM only |
 | **Default shell failed?** | `sudo chsh -s "$(command -v zsh)" "$USER"` then re-login |
@@ -326,6 +327,7 @@ Enabled list: `config/modules.enabled` (comment out a line to skip).
 | `20-mise` | mise binary + link `config/mise.toml` + `mise install` |
 | `21-languages` | language runtimes, uv, pipx, cookiecutter; erlang before elixir |
 | `22-aube` | aube via mise |
+| `23-astral` | **uv**, **ruff**, **ty** (Astral Python DX) |
 | `25-hk` | **hk** git hook manager (binary only; per-repo `hk install --mise`) |
 | `30-cli-tools` | CLI from `config/packages.cli` (+ apt fallbacks) |
 | `31-git-tools` | gh, lazygit, delta |
