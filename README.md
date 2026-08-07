@@ -404,23 +404,24 @@ Primary workflow is still **SSH → clone → `./install`**.
 If you later want auto-bootstrap on `ssh exe.dev new`:
 
 ```bash
-# One-off for a new VM (script must stay small; it clones this private repo)
-export EXE_BOOTSTRAP_REPO=git@github.com:robertguss/exe-bootstrap.git
+# One-off for a new VM (script stays small; clones this public repo over HTTPS)
+export EXE_BOOTSTRAP_REPO=https://github.com/robertguss/exe-bootstrap.git
 cat setup-exe.dev.sh | ssh exe.dev new --setup-script /dev/stdin
 ```
 
-Requirements for unattended clone: GitHub integration or deploy key on the new VM.  
+Default `setup-exe.dev.sh` already uses the HTTPS URL.  
 Do **not** put secrets in the setup script. After boot, still do the **P0/P1** steps (age backup, agent logins).
 
 ---
 
 ## Security
 
-- Keep this repository **private**.
+- This repo is **public** — never commit secrets, even “temporarily.”
 - Never commit `age.txt`, `.env`, or API keys.
 - `.gitignore` blocks common secret paths; double-check before `git add -f`.
 - Rotate any credential that lived in plain shell config or chat logs.
 - Prefer **fnox** (or exe.dev integrations) over `export KEY=...` in dotfiles.
+- Git identity in `home/.gitconfig` is personal (name/email); forks should edit it.
 
 ---
 
@@ -431,7 +432,7 @@ Do **not** put secrets in the setup script. After boot, still do the **P0/P1** s
 | Commands missing after install | `exec zsh` or new SSH session; ensure `~/.local/bin` on PATH |
 | `mise` tools not found | `eval "$(mise activate zsh)"` then `mise reshim` |
 | Elixir / `erl: not found` | `./install --only 21-languages` (erlang must install first) |
-| `chsh` failed | `sudo chsh -s "$(command -v zsh)" "$USER"` and re-login |
+| `chsh` failed or install hung on “setting default shell” | Fixed: install never prompts. Ctrl+C if stuck on old clone, `git pull`, re-run. Manually: `sudo chsh -s "$(command -v zsh)" "$USER"` then `exec zsh` |
 | LazyVim / nvim errors | First launch needs network; try `nvim` again; backup and re-run `./install --only 40-neovim-lazyvim` only if config isn’t customized |
 | `gh` / git SSH host key errors | `ssh-keyscan -t ed25519,rsa github.com >> ~/.ssh/known_hosts` |
 | Devin “login canceled” during install | Normal in non-interactive runs; run `devin` yourself |
@@ -458,4 +459,4 @@ cd ~/exe-bootstrap && git pull && ./install
 
 ## License
 
-Private / personal use.
+Personal bootstrap, public for easy cloning. Use/adapt as you like; no warranty.
