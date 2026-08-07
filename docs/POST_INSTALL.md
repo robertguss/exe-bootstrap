@@ -14,6 +14,8 @@ ls -la ~/.config/fnox/age.txt
 grep "public key:" ~/.config/fnox/age.txt
 ```
 
+Install already sets the login shell to zsh and keeps `$SHELL` accurate for children (herdr, etc.). Interactive bash auto-switches to zsh when the login shell is zsh (`~/.bashrc` block `exe-bootstrap-zsh-default`). Opt out: `EXE_BOOTSTRAP_NO_ZSH=1 bash`.
+
 ## P1 — Logins (interactive)
 
 | Tool | Command | Notes |
