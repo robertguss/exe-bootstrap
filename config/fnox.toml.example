@@ -1,0 +1,14 @@
+# Example fnox config. Copy to a project or ~/.config/fnox/fnox.toml as needed.
+# Secrets are NEVER committed as plaintext. Use age encryption.
+#
+# Setup (once per machine after ./install):
+#   1. Age key is generated at ~/.config/fnox/age.txt by the fnox module
+#   2. Back up that file offline
+#   3. fnox init && fnox provider add age --id main --recipients <pubkey>
+#   4. fnox secret set MY_KEY --provider main
+#
+# See https://fnox.jdx.dev/
+
+# [providers.main]
+# type = "age"
+# recipients = ["age1..."]  # from: grep "public key:" ~/.config/fnox/age.txt

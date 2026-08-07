@@ -1,0 +1,4 @@
+# Oh My Zsh plugins (space-separated list used by 10-zsh-omz)
+# Standard: git
+# Custom (cloned into $ZSH_CUSTOM/plugins): zsh-autosuggestions zsh-syntax-highlighting
+git zsh-autosuggestions zsh-syntax-highlighting

@@ -1,0 +1,18 @@
+# Local / secrets — never commit
+**/.env
+**/.env.*
+**/age.txt
+**/fnox.toml
+!**/*.example
+**/*secret*
+**/*credentials*
+
+# OS / editor
+.DS_Store
+*.swp
+*~
+.idea/
+.vscode/
+
+# Backup files created by installer
+*.bak.*

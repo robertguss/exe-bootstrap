@@ -1,0 +1,110 @@
+#!/usr/bin/env bash
+# exe-bootstrap — idempotent dev environment installer for exe.dev / Ubuntu.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib/common.sh
+source "${ROOT}/lib/common.sh"
+
+export BOOTSTRAP_ROOT="$ROOT"
+
+usage() {
+  cat <<'EOF'
+Usage: ./install [options]
+
+  Idempotent installer for the exe-bootstrap environment.
+
+Options:
+  -h, --help     Show this help
+  --list         List modules and enabled state
+  --only NAME    Run a single module (e.g. 30-cli-tools)
+  --dry-run      Print modules that would run (no changes)
+
+Modules are enabled in config/modules.enabled.
+EOF
+}
+
+LIST_ONLY=0
+DRY_RUN=0
+ONLY_MODULE=""
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -h|--help) usage; exit 0 ;;
+    --list) LIST_ONLY=1; shift ;;
+    --dry-run) DRY_RUN=1; shift ;;
+    --only) ONLY_MODULE="${2:-}"; shift 2 ;;
+    *) err "Unknown option: $1"; usage; exit 1 ;;
+  esac
+done
+
+list_modules() {
+  local f base
+  for f in "${ROOT}/modules/"*.sh; do
+    [[ -f "$f" ]] || continue
+    base="$(basename "$f" .sh)"
+    if is_enabled "$base"; then
+      printf '  %s[on]%s  %s\n' "$C_GREEN" "$C_RESET" "$base"
+    else
+      printf '  %s[off]%s %s\n' "$C_DIM" "$C_RESET" "$base"
+    fi
+  done
+}
+
+if [[ "$LIST_ONLY" -eq 1 ]]; then
+  log "modules (config/modules.enabled)"
+  list_modules
+  exit 0
+fi
+
+log "exe-bootstrap from $ROOT"
+log "user=$(whoami) host=$(hostname) os=$(. /etc/os-release 2>/dev/null; echo "${PRETTY_NAME:-unknown}")"
+
+if [[ -n "$ONLY_MODULE" ]]; then
+  mod="${ROOT}/modules/${ONLY_MODULE}.sh"
+  if [[ ! -f "$mod" ]]; then
+    # allow passing with or without numeric prefix match
+    matches=("${ROOT}/modules/"*"${ONLY_MODULE}"*.sh)
+    if [[ -f "${matches[0]:-}" ]]; then
+      mod="${matches[0]}"
+    else
+      err "module not found: $ONLY_MODULE"
+      exit 1
+    fi
+  fi
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    log "dry-run: would run $(basename "$mod")"
+    exit 0
+  fi
+  run_module "$mod"
+  log "done (single module)"
+  exit 0
+fi
+
+shopt -s nullglob
+modules=("${ROOT}/modules/"*.sh)
+if ((${#modules[@]} == 0)); then
+  err "no modules in ${ROOT}/modules"
+  exit 1
+fi
+
+if [[ "$DRY_RUN" -eq 1 ]]; then
+  log "dry-run — would run:"
+  list_modules
+  exit 0
+fi
+
+for mod in "${modules[@]}"; do
+  run_module "$mod"
+done
+
+log "all modules complete"
+printf '\n%sNext steps:%s\n' "$C_BOLD" "$C_RESET"
+cat <<'EOF'
+  1. Restart shell or:  exec zsh
+  2. Back up age key:   ~/.config/fnox/age.txt  (private!)
+  3. gh auth login      (when ready)
+  4. atuin login        (optional history sync)
+  5. grok / devin       first-run auth
+  6. Add secrets via fnox (see config/fnox.toml.example)
+EOF

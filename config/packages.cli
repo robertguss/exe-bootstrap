@@ -1,0 +1,18 @@
+# CLI tools installed via mise where possible (name[=version]).
+# Lines starting with # are ignored.
+
+# Core UX
+ripgrep
+fd
+fzf
+bat
+eza
+jq
+# yq may be yq or go-yq depending on registry; installed in module with fallback
+zoxide
+starship
+usage
+
+# Git extras (gh/lazygit/delta may also come from apt in module)
+lazygit
+delta

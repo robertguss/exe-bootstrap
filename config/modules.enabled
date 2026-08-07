@@ -1,0 +1,14 @@
+# One module id per line (filename without .sh). Comment out to skip.
+00-base
+10-zsh-omz
+15-starship-atuin
+20-mise
+21-languages
+22-aube
+30-cli-tools
+31-git-tools
+40-neovim-lazyvim
+50-herdr
+60-fnox
+70-agents
+90-dotfiles

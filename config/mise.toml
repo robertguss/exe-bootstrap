@@ -1,0 +1,17 @@
+# Global mise config installed to ~/.config/mise/config.toml
+# Node: latest LTS. Everything else: latest stable.
+
+[tools]
+node = "lts"
+python = "latest"
+go = "latest"
+rust = "latest"
+ruby = "latest"
+elixir = "latest"
+fnox = "latest"
+usage = "latest"
+
+[settings]
+experimental = true
+# Prefer idiomatic version files in project dirs when present
+idiomatic_version_file_enable_tools = ["node", "python", "ruby"]
