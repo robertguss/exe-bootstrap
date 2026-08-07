@@ -4,20 +4,20 @@ Modular, **idempotent** dev environment for disposable [exe.dev](https://exe.dev
 
 Clone once, run `./install`, re-run anytime. Add or remove tools by editing modules — no need to rebuild a machine image.
 
-**Repo:** [github.com/robertguss/exe-bootstrap](https://github.com/robertguss/exe-bootstrap) (private)
+**Repo:** [github.com/robertguss/exe-bootstrap](https://github.com/robertguss/exe-bootstrap) (**public** — clone over HTTPS, no SSH key required)
 
 ---
 
 ## Quick start (fresh VM)
 
 ```bash
-# 1. SSH into the VM, then clone
-git clone git@github.com:robertguss/exe-bootstrap.git ~/exe-bootstrap
-# or: git clone https://github.com/robertguss/exe-bootstrap.git ~/exe-bootstrap
+# 1. SSH into the VM, then clone (HTTPS — no GitHub SSH key needed)
+git clone https://github.com/robertguss/exe-bootstrap.git ~/exe-bootstrap
 
 cd ~/exe-bootstrap
 ./install
 exec zsh
+./doctor
 ```
 
 Then complete **[After install: required & optional steps](#after-install-required--optional-steps)** below. The installer configures tools; it does **not** complete interactive logins or secret backups for you.
