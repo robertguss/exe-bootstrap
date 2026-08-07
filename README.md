@@ -201,15 +201,20 @@ nvim
 
 #### Atuin (shell history)
 
-Installed and hooked in `.zshrc`. Sync is optional:
+Installed **non-interactively** (no setup questions during `./install`):
+
+- Binary via **mise** (fallback: official setup `--non-interactive`)
+- Local history: `atuin import auto` once per machine (marker under `~/.local/state/exe-bootstrap/`)
+- Shell hook: `eval "$(atuin init zsh)"` in managed `~/.zshrc`
+- **Cloud sync is not configured** during install
+
+Optional later:
 
 ```bash
-atuin import auto       # import existing shell history once
-atuin register          # new account — or:
-atuin login             # existing account
+atuin register    # new Atuin Cloud account
+atuin login       # existing account
+atuin sync
 ```
-
-Skip if you only want local history.
 
 #### fnox secrets (API keys, tokens)
 

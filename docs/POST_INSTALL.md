@@ -35,7 +35,7 @@ devin --version && devin
 |------|------------------|
 | LazyVim plugins | `nvim` (wait for install) |
 | Local terminal font | Nerd Font on **client**, not VM |
-| Atuin history sync | `atuin import auto` then `atuin login` or `register` |
+| Atuin history sync | Local import runs during install. Cloud sync later: `atuin login` or `atuin register` |
 | Secrets | Use **fnox** + age — not `.zshrc` exports |
 | Git signing | Not configured; add GPG/SSH signing yourself if needed |
 
