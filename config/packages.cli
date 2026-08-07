@@ -16,3 +16,6 @@ usage
 # Git extras (gh/lazygit/delta may also come from apt in module)
 lazygit
 delta
+
+# jdx git hooks (binary only; enable per-repo with: hk install --mise)
+hk

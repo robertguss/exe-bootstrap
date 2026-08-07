@@ -46,7 +46,8 @@ Then complete **[After install: required & optional steps](#after-install-requir
 | **Node** | **aube** package manager |
 | **Python** | **uv**, **pipx**, **cookiecutter** (for `npp` alias) |
 | **CLI** | ripgrep, fd, fzf, bat, eza, jq, yq, htop, tree, tmux, **trash-cli** |
-| **Git** | identity in `home/.gitconfig`, **gh**, **lazygit**, **git-delta** |
+| **Git** | identity in `home/.gitconfig`, **gh**, **lazygit**, **git-delta**, **hk** (hooks binary; per-repo enable) |
+| **Health** | **`./doctor`** — post-install / anytime VM health check |
 | **Editor** | Neovim + stock **LazyVim** starter (`~/.config/nvim`) |
 | **Multiplexer** | **herdr** (`hr` alias) |
 | **Agents** | **Grok Build** ([x.ai/build](https://x.ai/build)), **Devin CLI**, Pi/Shelley if already on the image |
@@ -63,6 +64,7 @@ Dotfiles are **symlinked** from `home/` into `$HOME`. Machine-specific overrides
 ./install --only 60-fnox  # single module (prefix or full id)
 ./install --dry-run       # show what would run
 ./install --help
+./doctor                  # health check (pass / warn / fail)
 ```
 
 ---
@@ -97,7 +99,8 @@ Confirm:
 echo $SHELL          # should end with /zsh
 mise --version
 node -v              # LTS via mise
-which grok nvim herdr fnox
+which grok nvim herdr fnox hk
+./doctor             # full health check (from the bootstrap repo)
 ```
 
 #### 2. Back up the age private key (required if you use fnox)
@@ -245,6 +248,27 @@ npp    # cookiecutter https://github.com/robertguss/cookiecutter-modern-python-p
 
 Needs network; first run may prompt for template variables.
 
+#### hk (git hooks) — binary only
+
+`hk` is on PATH after install. It does **not** enable hooks in every repo.
+
+```bash
+hk --version
+cd your-project
+hk install --mise    # attach hooks for this repo (needs project hk config)
+```
+
+See [docs/hk.md](docs/hk.md) and https://hk.jdx.dev/.
+
+#### `./doctor`
+
+```bash
+cd ~/exe-bootstrap   # or wherever you cloned
+./doctor             # exit 1 if required checks fail
+```
+
+Use after every fresh install and when something “feels wrong.”
+
 ---
 
 ### P3 — Optional / as needed
@@ -265,7 +289,8 @@ Needs network; first run may prompt for template variables.
 
 ```text
 [ ] exec zsh  (or new SSH session)
-[ ] mise / node / nvim / grok respond on PATH
+[ ] ./doctor  (fix fails, fix until clean enough to work)
+[ ] mise / node / nvim / grok / hk respond on PATH
 [ ] Backed up ~/.config/fnox/age.txt offline
 [ ] gh auth login  (if needed)
 [ ] grok  — completed first-run auth
@@ -274,6 +299,7 @@ Needs network; first run may prompt for template variables.
 [ ] atuin import / login  (optional)
 [ ] Moved API keys into fnox  (optional but recommended)
 [ ] Nerd Font set on local terminal client
+[ ] (per project) hk install --mise when you want hooks
 ```
 
 ---
@@ -290,6 +316,7 @@ Enabled list: `config/modules.enabled` (comment out a line to skip).
 | `20-mise` | mise binary + link `config/mise.toml` + `mise install` |
 | `21-languages` | language runtimes, uv, pipx, cookiecutter; erlang before elixir |
 | `22-aube` | aube via mise |
+| `25-hk` | **hk** git hook manager (binary only; per-repo `hk install --mise`) |
 | `30-cli-tools` | CLI from `config/packages.cli` (+ apt fallbacks) |
 | `31-git-tools` | gh, lazygit, delta |
 | `40-neovim-lazyvim` | neovim + LazyVim starter (won’t clobber existing LazyVim) |
@@ -333,9 +360,11 @@ Modules are sourced in filename order. Each defines `run()`.
 ```text
 exe-bootstrap/
 ├── install                 # entrypoint
+├── doctor                  # health check (pass/warn/fail)
 ├── setup-exe.dev.sh        # optional thin first-boot (clone + install)
 ├── lib/common.sh           # logging, apt, symlink helpers
 ├── modules/                # numbered install steps
+├── docs/                   # POST_INSTALL.md, hk.md, …
 ├── config/
 │   ├── modules.enabled     # feature flags
 │   ├── mise.toml           # languages + many CLIs

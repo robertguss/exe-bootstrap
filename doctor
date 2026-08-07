@@ -1,0 +1,193 @@
+#!/usr/bin/env bash
+# exe-bootstrap doctor — health check for a bootstrapped VM.
+# Usage: ./doctor   or   ~/exe-bootstrap/doctor
+# Exit 0 if no failures; 1 if any required check failed.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Colors
+if [[ -t 1 ]]; then
+  C_RESET=$'\033[0m'
+  C_BOLD=$'\033[1m'
+  C_GREEN=$'\033[32m'
+  C_YELLOW=$'\033[33m'
+  C_RED=$'\033[31m'
+  C_DIM=$'\033[2m'
+else
+  C_RESET= C_BOLD= C_GREEN= C_YELLOW= C_RED= C_DIM=
+fi
+
+PASS=0
+WARN=0
+FAIL=0
+
+pass() { printf '%s[pass]%s %s\n' "$C_GREEN" "$C_RESET" "$*"; PASS=$((PASS + 1)); }
+warn() { printf '%s[warn]%s %s\n' "$C_YELLOW" "$C_RESET" "$*"; WARN=$((WARN + 1)); }
+fail() { printf '%s[fail]%s %s\n' "$C_RED" "$C_RESET" "$*"; FAIL=$((FAIL + 1)); }
+info() { printf '%s==>%s %s\n' "${C_BOLD}" "$C_RESET" "$*"; }
+
+have() { command -v "$1" >/dev/null 2>&1; }
+
+# Ensure common paths (non-interactive shells often lack mise activation)
+export PATH="${HOME}/bin:${HOME}/.local/bin:${HOME}/.atuin/bin:${HOME}/.grok/bin:${HOME}/.cargo/bin:${PATH}"
+if have mise; then
+  eval "$(mise activate bash)" 2>/dev/null || true
+elif [[ -x "${HOME}/.local/bin/mise" ]]; then
+  eval "$("${HOME}/.local/bin/mise" activate bash)" 2>/dev/null || true
+  export PATH="${HOME}/.local/bin:${PATH}"
+fi
+
+info "exe-bootstrap doctor"
+echo "  root: $ROOT"
+echo "  user: $(whoami)  host: $(hostname)"
+echo "  shell(db): $(getent passwd "$USER" | cut -d: -f7 2>/dev/null || echo '?')"
+echo "  date: $(date -Iseconds 2>/dev/null || date)"
+echo
+
+# --- Shell ---
+info "shell"
+if [[ "$(getent passwd "$USER" | cut -d: -f7)" == *zsh ]]; then
+  pass "login shell is zsh"
+else
+  fail "login shell is not zsh (run: sudo chsh -s \"\$(command -v zsh)\" \$USER)"
+fi
+if have zsh; then pass "zsh on PATH: $(command -v zsh)"; else fail "zsh missing"; fi
+if [[ -d "${HOME}/.oh-my-zsh" ]]; then pass "Oh My Zsh installed"; else fail "Oh My Zsh missing"; fi
+
+# --- Dotfiles ---
+info "dotfiles"
+_check_link() {
+  local dest="$1" expect_sub="$2" label="$3"
+  if [[ -L "$dest" ]]; then
+    local t
+    t="$(readlink "$dest")"
+    if [[ "$t" == *"$expect_sub"* ]]; then
+      pass "$label -> $t"
+    else
+      warn "$label is a symlink but not to bootstrap ($t)"
+    fi
+  elif [[ -e "$dest" ]]; then
+    warn "$label exists but is not a symlink to bootstrap"
+  else
+    fail "$label missing (run ./install)"
+  fi
+}
+_check_link "${HOME}/.zshrc" "exe-bootstrap/home/.zshrc" "~/.zshrc"
+_check_link "${HOME}/.aliases.zsh" "exe-bootstrap/home/aliases.zsh" "~/.aliases.zsh"
+_check_link "${HOME}/.gitconfig" "exe-bootstrap/home/.gitconfig" "~/.gitconfig"
+if [[ -f "${HOME}/.zshrc.local" ]]; then pass "~/.zshrc.local present (local overrides)"; else warn "~/.zshrc.local missing (optional)"; fi
+
+# --- Core toolchain ---
+info "toolchain"
+if have mise; then pass "mise $(mise --version 2>/dev/null | head -1)"; else fail "mise missing"; fi
+if have node; then pass "node $(node -v 2>/dev/null)"; else fail "node missing (mise install / new shell?)"; fi
+if have python || have python3; then
+  pass "python $($(command -v python 2>/dev/null || command -v python3) --version 2>/dev/null | awk '{print $2}')"
+else
+  fail "python missing"
+fi
+if have go; then pass "go $(go version 2>/dev/null | awk '{print $3}')"; else warn "go missing"; fi
+if have rustc; then pass "rustc $(rustc --version 2>/dev/null | awk '{print $2}')"; else warn "rustc missing"; fi
+if have ruby; then pass "ruby $(ruby -v 2>/dev/null | awk '{print $2}')"; else warn "ruby missing"; fi
+if have erl || have erlc; then pass "erlang present"; else warn "erlang missing (needed for elixir)"; fi
+if have elixir; then pass "elixir $(elixir --version 2>/dev/null | tail -1)"; else warn "elixir missing"; fi
+if have aube; then pass "aube $(aube --version 2>/dev/null | head -1)"; else warn "aube missing"; fi
+if have uv; then pass "uv $(uv --version 2>/dev/null | head -1)"; else warn "uv missing"; fi
+if have hk; then pass "hk $(hk --version 2>/dev/null | head -1)"; else fail "hk missing (./install --only 25-hk)"; fi
+
+# --- CLI UX ---
+info "cli tools"
+for c in rg fd fzf bat eza jq zoxide starship; do
+  if have "$c"; then pass "$c"; else warn "$c missing"; fi
+done
+if have trash-put || have trash; then pass "trash-cli"; else warn "trash-cli missing"; fi
+if have atuin; then pass "atuin $(atuin --version 2>/dev/null | head -1)"; else warn "atuin missing"; fi
+
+# --- Git ---
+info "git"
+if have git; then pass "git $(git --version | awk '{print $3}')"; else fail "git missing"; fi
+if have gh; then pass "gh $(gh --version 2>/dev/null | head -1)"; else warn "gh missing"; fi
+if have lazygit; then pass "lazygit"; else warn "lazygit missing"; fi
+if have delta; then pass "delta"; else warn "delta missing"; fi
+name="$(git config --global user.name 2>/dev/null || true)"
+email="$(git config --global user.email 2>/dev/null || true)"
+if [[ -n "$name" && -n "$email" ]]; then
+  pass "git identity: $name <$email>"
+else
+  fail "git user.name / user.email not set"
+fi
+if have gh; then
+  if gh auth status >/dev/null 2>&1; then
+    pass "gh authenticated"
+  else
+    warn "gh not authenticated (run: gh auth login)"
+  fi
+fi
+
+# --- Editor / mux / agents ---
+info "editor & agents"
+if have nvim; then pass "nvim $(nvim --version 2>/dev/null | head -1)"; else fail "nvim missing"; fi
+if [[ -f "${HOME}/.config/nvim/init.lua" ]] || [[ -d "${HOME}/.config/nvim/lua" ]]; then
+  pass "nvim config present"
+else
+  warn "nvim config missing (./install --only 40-neovim-lazyvim)"
+fi
+if have herdr; then pass "herdr $(herdr --version 2>/dev/null | head -1)"; else warn "herdr missing"; fi
+if have grok; then pass "grok $(grok --version 2>/dev/null | head -1)"; else fail "Grok Build (grok) missing"; fi
+if have devin; then pass "devin present"; else warn "devin missing (optional until you use it)"; fi
+if have pi; then pass "pi present"; else warn "pi not on PATH (often image-provided)"; fi
+
+# --- Secrets ---
+info "secrets (fnox)"
+if have fnox; then pass "fnox $(fnox --version 2>/dev/null | head -1)"; else fail "fnox missing"; fi
+age_file="${HOME}/.config/fnox/age.txt"
+if [[ -f "$age_file" ]]; then
+  mode="$(stat -c '%a' "$age_file" 2>/dev/null || stat -f '%OLp' "$age_file" 2>/dev/null || echo '?')"
+  if [[ "$mode" == "600" || "$mode" == "0600" ]]; then
+    pass "age key present ($age_file, mode $mode)"
+  else
+    warn "age key present but mode is $mode (prefer 600)"
+  fi
+  if grep -q 'AGE-SECRET-KEY-' "$age_file" 2>/dev/null; then
+    pass "age secret key line found"
+  else
+    fail "age file missing AGE-SECRET-KEY- line"
+  fi
+  if grep -q 'public key:' "$age_file" 2>/dev/null; then
+    pass "age public key: $(grep 'public key:' "$age_file" | head -1 | awk '{print $NF}')"
+  fi
+else
+  fail "age key missing at $age_file (./install --only 60-fnox) — then BACK UP offline"
+fi
+if [[ -n "${FNOX_AGE_KEY:-}" ]]; then
+  pass "FNOX_AGE_KEY is set in this environment"
+else
+  warn "FNOX_AGE_KEY unset here (normal in non-zsh; ok after exec zsh if .zshrc loads it)"
+fi
+
+# --- Summary ---
+echo
+info "summary"
+printf '  %s%d pass%s  %s%d warn%s  %s%d fail%s\n' \
+  "$C_GREEN" "$PASS" "$C_RESET" \
+  "$C_YELLOW" "$WARN" "$C_RESET" \
+  "$C_RED" "$FAIL" "$C_RESET"
+
+if [[ "$FAIL" -gt 0 ]]; then
+  echo
+  printf '%sNext:%s fix [fail] items, then re-run ./doctor\n' "$C_BOLD" "$C_RESET"
+  printf '  Full guide: %s/README.md (After install)\n' "$ROOT"
+  printf '  Short list: %s/docs/POST_INSTALL.md\n' "$ROOT"
+  exit 1
+fi
+
+if [[ "$WARN" -gt 0 ]]; then
+  echo
+  printf '%sOK with warnings.%s Optional: gh auth, atuin, agent logins — see docs/POST_INSTALL.md\n' "$C_YELLOW" "$C_RESET"
+  exit 0
+fi
+
+echo
+printf '%sAll required checks passed.%s\n' "$C_GREEN" "$C_RESET"
+exit 0
