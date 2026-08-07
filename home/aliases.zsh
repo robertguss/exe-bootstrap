@@ -38,6 +38,16 @@ command -v lazydocker >/dev/null 2>&1 && alias lzd="lazydocker"
 command -v btm >/dev/null 2>&1 && alias bottom="btm"
 command -v dust >/dev/null 2>&1 && alias duh="dust"   # human disk usage (avoid clobbering du)
 
+# Agent DX (Lane C)
+# Prefer `ast-grep` — on Linux /bin/sg is "shadow group", not ast-grep
+if command -v ast-grep >/dev/null 2>&1; then
+  alias agrep="ast-grep"
+elif command -v sg >/dev/null 2>&1 && [[ "$(command -v sg)" != "/bin/sg" && "$(command -v sg)" != "/usr/bin/sg" ]]; then
+  alias agrep="sg"
+fi
+command -v gitleaks >/dev/null 2>&1 && alias gls="gitleaks"
+command -v difft >/dev/null 2>&1 && alias difftastic="difft"
+
 # Node helpers
 alias nr="npm run"
 alias nd="npm run dev"

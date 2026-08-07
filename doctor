@@ -113,6 +113,27 @@ if have dust; then pass "dust"; else warn "dust missing"; fi
 if have dua; then pass "dua"; else warn "dua missing"; fi
 if have docker; then pass "docker $(docker --version 2>/dev/null | head -1)"; else warn "docker missing"; fi
 
+# --- Agent DX (Lane C) ---
+info "agent dx"
+# Note: /bin/sg is Linux "shadow group", not ast-grep
+if have ast-grep; then
+  pass "ast-grep $(ast-grep --version 2>/dev/null | head -1 || echo ok)"
+elif have sg && [[ "$(command -v sg)" != "/bin/sg" && "$(command -v sg)" != "/usr/bin/sg" ]]; then
+  pass "ast-grep via sg at $(command -v sg)"
+else
+  warn "ast-grep missing (./install --only 33-agent-dx) — do not confuse with /bin/sg"
+fi
+
+if have gitleaks; then pass "gitleaks"; else warn "gitleaks missing"; fi
+if have git-absorb; then pass "git-absorb"; else warn "git-absorb missing"; fi
+if have difft; then pass "difftastic (difft)"; else warn "difftastic missing"; fi
+_bootstrap_root="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ -f "${_bootstrap_root}/templates/AGENTS.md" ]]; then
+  pass "templates/AGENTS.md present"
+else
+  warn "templates/AGENTS.md missing from bootstrap repo"
+fi
+
 # --- Git ---
 info "git"
 if have git; then pass "git $(git --version | awk '{print $3}')"; else fail "git missing"; fi

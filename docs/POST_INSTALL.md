@@ -43,6 +43,7 @@ devin --version && devin
 
 - `herdr` / `hr` — agent multiplexer  
 - **hk** — already on PATH; enable per repo with `hk install --mise` (see [hk.md](hk.md))  
+- **Agent DX** — `sg`, `gitleaks`, `git-absorb`, `difft`; copy `templates/AGENTS.md` into projects ([agent-dx.md](agent-dx.md))  
 - Edit `~/.zshrc.local` for machine-only tweaks  
 - `ssh exe.dev share port …` when exposing dev servers  
 - Starship: `home/starship.toml` in the repo  
