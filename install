@@ -108,7 +108,7 @@ cat <<EOF
   P1  grok                   # first-run auth (Grok Build)
   P1  devin                  # first-run auth (interactive)
   P2  nvim                   # LazyVim plugin install on first open
-  P2  atuin import auto && atuin login   # optional history sync
+  P2  atuin login / register   # optional cloud sync (local import done at install)
   P2  Move API keys into fnox (config/fnox.toml.example)
   P3  Per repo: hk install --mise   # optional git hooks (docs/hk.md)
 
