@@ -99,12 +99,17 @@ for mod in "${modules[@]}"; do
 done
 
 log "all modules complete"
-printf '\n%sNext steps:%s\n' "$C_BOLD" "$C_RESET"
-cat <<'EOF'
-  1. Restart shell or:  exec zsh
-  2. Back up age key:   ~/.config/fnox/age.txt  (private!)
-  3. gh auth login      (when ready)
-  4. atuin login        (optional history sync)
-  5. grok / devin       first-run auth
-  6. Add secrets via fnox (see config/fnox.toml.example)
+printf '\n%sNext steps (see README for full checklist):%s\n' "$C_BOLD" "$C_RESET"
+cat <<EOF
+  P0  exec zsh
+  P0  Back up age key:  ~/.config/fnox/age.txt  (offline — never commit)
+  P1  gh auth login          # if not already authenticated
+  P1  grok                   # first-run auth (Grok Build)
+  P1  devin                  # first-run auth (interactive)
+  P2  nvim                   # LazyVim plugin install on first open
+  P2  atuin import auto && atuin login   # optional history sync
+  P2  Move API keys into fnox (config/fnox.toml.example)
+
+  Full guide: ${ROOT}/README.md
+  Section:    "After install: required & optional steps"
 EOF
