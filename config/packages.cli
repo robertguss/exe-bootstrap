@@ -19,3 +19,10 @@ delta
 
 # jdx git hooks (binary only; enable per-repo with: hk install --mise)
 hk
+
+# Lane B — Docker / ops / system
+lazydocker
+bottom
+btop
+dust
+dua

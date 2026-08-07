@@ -46,6 +46,7 @@ Then complete **[After install: required & optional steps](#after-install-requir
 | **Node** | **aube** package manager |
 | **Python** | **uv**, **pipx**, **cookiecutter** (for `npp` alias) |
 | **CLI** | ripgrep, fd, fzf, bat, eza, jq, yq, htop, tree, tmux, **trash-cli** |
+| **Ops** | **lazydocker**, **bottom** (`btm`), **btop**, **dust**, **dua** |
 | **Git** | identity in `home/.gitconfig`, **gh**, **lazygit**, **git-delta**, **hk** (hooks binary; per-repo enable) |
 | **Health** | **`./doctor`** — post-install / anytime VM health check |
 | **Editor** | Neovim + stock **LazyVim** starter (`~/.config/nvim`) |
@@ -276,10 +277,13 @@ Use after every fresh install and when something “feels wrong.”
 | Item | Action |
 |------|--------|
 | **herdr** | Run `herdr` or `hr` to start agent-aware sessions; `herdr update` to upgrade |
+| **lazydocker** | `lazydocker` or alias `lzd` — Docker TUI (daemon must be running) |
+| **bottom / btop** | `btm` (alias `bottom`) or `btop` — live process/CPU monitors |
+| **dust / dua** | `dust` (alias `duh`) or `dua i` — disk usage; helpful on size-limited VMs |
 | **Starship** | Config is linked from `home/starship.toml` → `~/.config/starship.toml`; edit in repo or replace link |
 | **Personal aliases** | Edit `home/aliases.zsh` in the repo, or use `~/.zshrc.local` for this VM only |
 | **Default shell failed?** | `sudo chsh -s "$(command -v zsh)" "$USER"` then re-login |
-| **Docker** | Usually preinstalled on exe.dev; add your user is often already in `docker` group |
+| **Docker** | Usually preinstalled on exe.dev; user often already in `docker` group |
 | **exe.dev HTTP proxy** | Dev servers: see [Next.js/Vite notes](https://exe.dev/docs/faq/nextjs-and-friends.md); share port with `ssh exe.dev share port <vm> <port>` |
 | **Auto setup-script** | Not enabled by default; see [Optional first-boot script](#optional-exedev-first-boot-script) |
 
@@ -319,6 +323,7 @@ Enabled list: `config/modules.enabled` (comment out a line to skip).
 | `25-hk` | **hk** git hook manager (binary only; per-repo `hk install --mise`) |
 | `30-cli-tools` | CLI from `config/packages.cli` (+ apt fallbacks) |
 | `31-git-tools` | gh, lazygit, delta |
+| `32-ops-tools` | lazydocker, bottom, btop, dust, dua |
 | `40-neovim-lazyvim` | neovim + LazyVim starter (won’t clobber existing LazyVim) |
 | `50-herdr` | herdr install/update |
 | `60-fnox` | fnox + age key generation |

@@ -104,6 +104,15 @@ done
 if have trash-put || have trash; then pass "trash-cli"; else warn "trash-cli missing"; fi
 if have atuin; then pass "atuin $(atuin --version 2>/dev/null | head -1)"; else warn "atuin missing"; fi
 
+# --- Ops / Docker (Lane B) ---
+info "ops tools"
+if have lazydocker; then pass "lazydocker"; else warn "lazydocker missing (./install --only 32-ops-tools)"; fi
+if have btm || have bottom; then pass "bottom (btm)"; else warn "bottom/btm missing"; fi
+if have btop; then pass "btop"; else warn "btop missing"; fi
+if have dust; then pass "dust"; else warn "dust missing"; fi
+if have dua; then pass "dua"; else warn "dua missing"; fi
+if have docker; then pass "docker $(docker --version 2>/dev/null | head -1)"; else warn "docker missing"; fi
+
 # --- Git ---
 info "git"
 if have git; then pass "git $(git --version | awk '{print $3}')"; else fail "git missing"; fi

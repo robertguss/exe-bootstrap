@@ -33,6 +33,11 @@ alias rmnode="tr node_modules 2>/dev/null || trash-put node_modules"
 alias hr="herdr"
 alias grokcfg="nvim ~/.grok/config.toml"
 
+# Docker / ops (Lane B)
+command -v lazydocker >/dev/null 2>&1 && alias lzd="lazydocker"
+command -v btm >/dev/null 2>&1 && alias bottom="btm"
+command -v dust >/dev/null 2>&1 && alias duh="dust"   # human disk usage (avoid clobbering du)
+
 # Node helpers
 alias nr="npm run"
 alias nd="npm run dev"
