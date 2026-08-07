@@ -340,7 +340,7 @@ Enabled list: `config/modules.enabled` (comment out a line to skip).
 | `31-git-tools` | gh, lazygit, delta |
 | `32-ops-tools` | lazydocker, bottom, btop, dust, dua |
 | `33-agent-dx` | ast-grep, gitleaks, git-absorb, difftastic (+ templates/) |
-| `40-neovim-lazyvim` | neovim + LazyVim starter (won’t clobber existing LazyVim) |
+| `40-neovim-lazyvim` | neovim via **mise** (≥0.11.2; not apt) + `~/.local/bin` link + LazyVim starter (won’t clobber existing LazyVim) |
 | `50-herdr` | herdr install/update |
 | `60-fnox` | fnox + age key generation |
 | `70-agents` | Grok Build, Devin CLI; detect Pi/Shelley |
@@ -439,6 +439,7 @@ Do **not** put secrets in the setup script. After boot, still do the **P0/P1** s
 | Elixir / `erl: not found` | `./install --only 21-languages` (erlang must install first) |
 | `chsh` failed or install hung on “setting default shell” | Fixed: install never prompts. Ctrl+C if stuck on old clone, `git pull`, re-run. Manually: `sudo chsh -s "$(command -v zsh)" "$USER"` then `exec zsh` |
 | LazyVim / nvim errors | First launch needs network; try `nvim` again; backup and re-run `./install --only 40-neovim-lazyvim` only if config isn’t customized |
+| `nvim` is system 0.9.x / LazyVim says install nvim | Ubuntu apt is too old; bootstrap installs via **mise** + `~/.local/bin/nvim`. Re-run `./install --only 40-neovim-lazyvim`, then `hash -r` / new shell. Confirm: `which nvim` → `~/.local/bin/nvim`, `nvim --version` ≥ 0.11.2 |
 | `gh` / git SSH host key errors | `ssh-keyscan -t ed25519,rsa github.com >> ~/.ssh/known_hosts` |
 | Devin “login canceled” during install | Normal in non-interactive runs; run `devin` yourself |
 | Dotfile conflict | Install backs up to `*.bak.<timestamp>` then symlinks managed files |

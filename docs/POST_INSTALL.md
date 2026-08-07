@@ -33,7 +33,7 @@ devin --version && devin
 
 | Task | Command / action |
 |------|------------------|
-| LazyVim plugins | `nvim` (wait for install) |
+| LazyVim plugins | `nvim` (wait for install). Need **≥ 0.11.2** via mise (`which nvim` should be `~/.local/bin/nvim`, not `/usr/bin/nvim`) |
 | Local terminal font | Nerd Font on **client**, not VM |
 | Atuin history sync | Local import runs during install. Cloud sync later: `atuin login` or `atuin register` |
 | Secrets | Use **fnox** + age — not `.zshrc` exports |
