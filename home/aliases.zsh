@@ -17,7 +17,14 @@ if command -v bat >/dev/null 2>&1; then
   alias cat="bat"
 fi
 if command -v eza >/dev/null 2>&1; then
-  alias ls="eza -l -h -a"
+  unalias ls 2>/dev/null
+  function ls {
+    if [[ -t 0 ]]; then
+      eza -l -h -a "$@"
+    else
+      command ls "$@"
+    fi
+  }
 fi
 
 # trash-cli (safer rm)
