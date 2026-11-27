@@ -6,7 +6,8 @@
 node = "lts"
 python = "latest"
 go = "latest"
-rust = "latest"
+rust = { version = "latest", mr_boxington = true }
+mr-boxington = "latest"
 ruby = "latest"
 # Elixir needs Erlang/OTP on PATH
 erlang = "latest"

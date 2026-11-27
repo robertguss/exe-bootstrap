@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
-# Install mise and global config
+# Install mise, keep it current for native tool integrations, and configure shims + global config
+
+_ver_ge() {
+  printf '%s\n%s\n' "$2" "$1" | sort -C -V
+}
 
 run() {
   if have mise; then
@@ -18,6 +22,19 @@ run() {
     # shellcheck disable=SC2139
     mise() { "${HOME}/.local/bin/mise" "$@"; }
   fi
+
+  # Native mr_boxington integration requires mise >= 2026.9.2
+  local mise_ver
+  mise_ver="$(mise --version 2>/dev/null | awk '{print $1}' | head -n 1 || true)"
+  if [[ -n "$mise_ver" ]] && ! _ver_ge "$mise_ver" "2026.9.2"; then
+    log "updating mise ($mise_ver -> >= 2026.9.2 for mr_boxington)"
+    mise self-update -y || warn "mise self-update failed"
+  fi
+
+  # Ensure non-interactive shells (agents, SSH commands) resolve mise shims (including mbx-wrapped cargo)
+  local shims_line='export PATH="${HOME}/.local/share/mise/shims:${HOME}/.local/bin:${PATH}"'
+  ensure_block "${HOME}/.zshenv" "exe-bootstrap-mise-shims" "$shims_line"
+  ensure_block "${HOME}/.profile" "exe-bootstrap-mise-shims" "$shims_line"
 
   mkdir -p "${HOME}/.config/mise"
   link_file "${BOOTSTRAP_ROOT}/config/mise.toml" "${HOME}/.config/mise/config.toml"

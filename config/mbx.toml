@@ -1,0 +1,9 @@
+# Global mr-boxington (mbx) config (linked to ~/.config/mbx/config.toml)
+# Docs: https://mr-boxington.jdx.dev/configuration
+
+[gc]
+max_total_size = "50GiB"
+min_free_size = "30GiB"
+
+[target]
+evict_first = [".t3/worktrees", ".claude/worktrees"]

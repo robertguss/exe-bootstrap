@@ -1,0 +1,8 @@
+[Unit]
+Description=Clean dev-box caches, orphaned Docker volumes, and stale /tmp artifacts
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/dev-box-cleanup
+Nice=19
+IOSchedulingClass=idle

@@ -1,0 +1,201 @@
+#!/usr/bin/env bash
+# Periodic disk hygiene for dev-box: mbx GC, unused anonymous Docker volumes,
+# old Claude Code binaries, package caches, stale /tmp artifacts, and high-water fallback.
+set -euo pipefail
+shopt -s nullglob
+
+export PATH="${HOME}/.local/share/mise/shims:${HOME}/.local/bin:${HOME}/.cargo/bin:${PATH}"
+
+DRY_RUN=0
+FORCE_HIGH_WATER=0
+HIGH_WATER_PCT=80
+LOG_FILE="${HOME}/.local/state/dev-box-cleanup.log"
+MAX_LOG_BYTES=$((5 * 1024 * 1024))
+
+usage() {
+  cat <<'USAGE'
+Usage: dev-box-cleanup [options]
+
+Run routine disk cleanup on dev-box (and high-water target/cache cleanup if / >= 80%).
+
+Options:
+  -n, --dry-run           Show what would be removed without deleting anything
+      --force-high-water  Run high-water target/cache cleanup regardless of disk %
+  -h, --help              Show this help
+USAGE
+}
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -n|--dry-run)          DRY_RUN=1; shift ;;
+    --force-high-water)    FORCE_HIGH_WATER=1; shift ;;
+    -h|--help)             usage; exit 0 ;;
+    *) echo "Unknown option: $1" >&2; usage >&2; exit 1 ;;
+  esac
+done
+
+if [[ "$DRY_RUN" -eq 0 ]]; then
+  mkdir -p "$(dirname "$LOG_FILE")"
+  if [[ -f "$LOG_FILE" ]]; then
+    log_size="$(stat -c '%s' "$LOG_FILE" 2>/dev/null || echo 0)"
+    if [[ "$log_size" -gt "$MAX_LOG_BYTES" ]]; then
+      tail -c "$((1024 * 1024))" "$LOG_FILE" > "${LOG_FILE}.tmp" && mv "${LOG_FILE}.tmp" "$LOG_FILE"
+    fi
+  fi
+  exec > >(tee -a "$LOG_FILE") 2>&1
+fi
+
+log()  { printf '[%s] ==> %s\n' "$(date -Iseconds)" "$*"; }
+warn() { printf '[%s] [warn] %s\n' "$(date -Iseconds)" "$*" >&2; }
+
+OPEN_PATHS=""
+if command -v lsof >/dev/null 2>&1; then
+  OPEN_PATHS="$(lsof -Fn 2>/dev/null | sed -n 's/^n//p' || true)"
+fi
+
+is_open_path() {
+  local target="$1"
+  [[ -z "$OPEN_PATHS" ]] && return 1
+  printf '%s\n' "$OPEN_PATHS" | grep -qF "$target"
+}
+
+remove_path() {
+  local path="$1"
+  [[ -e "$path" || -L "$path" ]] || return 0
+  if is_open_path "$path"; then
+    log "skipping open path: $path"
+    return 0
+  fi
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    printf '[dry-run] rm -rf %s\n' "$path"
+  else
+    rm -rf "$path"
+    log "removed $path"
+  fi
+}
+
+disk_pct() {
+  df -P / | awk 'NR==2 {gsub(/%/, "", $5); print $5}'
+}
+
+log "starting dev-box-cleanup (dry_run=$DRY_RUN)"
+df -h /
+
+# 1. mr-boxington GC
+if command -v mbx >/dev/null 2>&1; then
+  log "running mbx gc"
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    mbx gc --dry-run || warn "mbx gc --dry-run failed"
+  else
+    mbx gc || warn "mbx gc failed"
+  fi
+fi
+
+# 2. Unused anonymous Docker volumes (never touches images or named/attached volumes)
+if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    log "[dry-run] would run: docker volume prune -f"
+  else
+    log "pruning unused anonymous docker volumes"
+    docker volume prune -f || warn "docker volume prune failed"
+  fi
+fi
+
+# 3. Old Claude Code binary versions (keep active symlink target)
+CLAUDE_BIN="${HOME}/.local/bin/claude"
+CLAUDE_VERSIONS_DIR="${HOME}/.local/share/claude/versions"
+if [[ -L "$CLAUDE_BIN" && -d "$CLAUDE_VERSIONS_DIR" ]]; then
+  active_claude="$(readlink -f "$CLAUDE_BIN" 2>/dev/null || true)"
+  if [[ -n "$active_claude" && "$active_claude" == "${CLAUDE_VERSIONS_DIR}/"* ]]; then
+    for ver in "${CLAUDE_VERSIONS_DIR}/"*; do
+      [[ "$ver" == "$active_claude" ]] && continue
+      remove_path "$ver"
+    done
+  fi
+fi
+
+# 4. Package manager cache pruning
+if command -v uv >/dev/null 2>&1; then
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    log "[dry-run] would run: uv cache prune"
+  else
+    uv cache prune || warn "uv cache prune failed"
+  fi
+fi
+
+if command -v pnpm >/dev/null 2>&1; then
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    log "[dry-run] would run: pnpm store prune"
+  else
+    pnpm store prune || warn "pnpm store prune failed"
+  fi
+fi
+
+# 5. Stale /tmp dev scratch artifacts owned by $USER, older than 3 days, and not open
+log "checking stale /tmp dev artifacts"
+while IFS= read -r -d '' item; do
+  remove_path "$item"
+done < <(
+  find /tmp -maxdepth 1 -user "$USER" -mtime +3 \( \
+    -name 'tlc*' -o \
+    -name 'standin-unit-*' -o \
+    -name 'mo-upgrade*' -o \
+    -name 'mo-door-*' -o \
+    -name 'link-*-cv.pdf' -o \
+    -name '.tmp*' -o \
+    -name 'dana-bench-*' -o \
+    -name 'fuzzruns' -o \
+    -name 'hearth-arvo-work' -o \
+    -name 'spike-pw' -o \
+    -name 'fw-venv' -o \
+    -name 'fwchk' \
+  \) -print0 2>/dev/null || true
+)
+
+# 6. High-water safeguard if / >= 80%
+used_pct="$(disk_pct)"
+if [[ "$FORCE_HIGH_WATER" -eq 1 || "$used_pct" -ge "$HIGH_WATER_PCT" ]]; then
+  log "high-water cleanup triggered (/ at ${used_pct}%, threshold ${HIGH_WATER_PCT}%)"
+
+  # Idle unmanaged target/ dirs in ~/.t3/worktrees (>2h untouched)
+  if [[ -d "${HOME}/.t3/worktrees" ]]; then
+    while IFS= read -r -d '' tdir; do
+      [[ -L "$tdir" ]] && continue
+      if [[ -z "$(find "$tdir" -mmin -120 -print -quit 2>/dev/null)" ]]; then
+        remove_path "$tdir"
+      fi
+    done < <(find "${HOME}/.t3/worktrees" -mindepth 3 -maxdepth 3 -name target -type d -print0 2>/dev/null || true)
+  fi
+
+  # Idle unmanaged target/ dirs in ~/code (>24h untouched)
+  if [[ -d "${HOME}/code" ]]; then
+    while IFS= read -r -d '' tdir; do
+      [[ -L "$tdir" ]] && continue
+      if [[ -z "$(find "$tdir" -mmin -1440 -print -quit 2>/dev/null)" ]]; then
+        remove_path "$tdir"
+      fi
+    done < <(find "${HOME}/code" -mindepth 2 -maxdepth 3 -name target -type d -print0 2>/dev/null || true)
+  fi
+
+  # Clear package caches only if no cargo/rustc build is active
+  if pgrep -x 'cargo|rustc' >/dev/null 2>&1; then
+    log "cargo/rustc active; skipping cargo registry/cache clear"
+  else
+    for cache_dir in \
+      "${HOME}/.cargo/registry/src" \
+      "${HOME}/.cargo/registry/cache" \
+      "${HOME}/.cargo/git/checkouts" \
+      "${HOME}/.cache/uv" \
+      "${HOME}/.cache/pip" \
+      "${HOME}/.cache/pnpm" \
+      "${HOME}/.cache/electron" \
+      "${HOME}/.cache/node-gyp" \
+      "${HOME}/.npm" \
+      "${HOME}/.bun/install/cache"; do
+      remove_path "$cache_dir"
+    done
+  fi
+fi
+
+log "finished dev-box-cleanup"
+df -h /

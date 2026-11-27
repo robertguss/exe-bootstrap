@@ -42,7 +42,7 @@ Then complete **[After install: required & optional steps](#after-install-requir
 |------|--------|
 | **Shell** | zsh as default (login shell + `$SHELL` + interactive bash auto-switch), Oh My Zsh, plugins (`git`, `zsh-autosuggestions`, `zsh-syntax-highlighting`), **starship**, **atuin**, **zoxide** |
 | **Secrets** | **fnox** + **age** (generates a fresh key at `~/.config/fnox/age.txt` if missing) |
-| **Toolchain** | **mise** managing Node (latest LTS), Python, Go, Rust, Ruby, Erlang, Elixir |
+| **Toolchain** | **mise** managing Node (latest LTS), Python, Go, Rust (with **mr-boxington** `mbx`), Ruby, Erlang, Elixir |
 | **Node** | **aube** package manager (works with existing lockfiles; no global pnpm/bun) |
 | **Tasks** | **just** (`j` / `jl` aliases) |
 | **Python / Astral** | **uv**, **ruff**, **ty**, **pipx**, **cookiecutter** (`npp` alias) |
@@ -51,6 +51,7 @@ Then complete **[After install: required & optional steps](#after-install-requir
 | **Agent DX** | **ast-grep** (`sg`), **gitleaks**, **git-absorb**, **difftastic** (`difft`), **AGENTS.md** templates |
 | **Git** | identity in `home/.gitconfig`, **gh**, **lazygit**, **git-delta**, **hk** (hooks binary; per-repo enable) |
 | **Health** | **`./doctor`** — post-install / anytime VM health check |
+| **Maintenance** | **`dev-box-update`** & **`dev-box-cleanup`** (6h systemd timer + `mbx` disk budget; see [docs/maintenance.md](docs/maintenance.md)) |
 | **Editor** | Neovim + stock **LazyVim** starter (`~/.config/nvim`) |
 | **Multiplexer** | **herdr** (`hr` alias) |
 | **Agents** | **Grok Build** ([x.ai/build](https://x.ai/build)), **Devin CLI**, Pi/Shelley if already on the image |
