@@ -1,0 +1,105 @@
+#!/usr/bin/env bash
+# Update mise, all mise-managed languages/CLIs, and other VM toolchains.
+set -euo pipefail
+
+export PATH="${HOME}/.local/share/mise/shims:${HOME}/.local/bin:${HOME}/.bun/bin:${HOME}/.elan/bin:${HOME}/.cargo/bin:${PATH}"
+
+DRY_RUN=0
+PRUNE=0
+APT=0
+
+usage() {
+  cat <<'USAGE'
+Usage: dev-box-update [options]
+
+Update mise itself, all tools in ~/.config/mise/config.toml, and non-mise runtimes.
+
+Options:
+  -n, --dry-run   Show what would be updated without making changes
+  -p, --prune     Run `mise prune -y` after upgrading to remove old tool versions
+      --apt       Also run `sudo apt-get update && sudo apt-get upgrade -y`
+  -h, --help      Show this help
+USAGE
+}
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -n|--dry-run) DRY_RUN=1; shift ;;
+    -p|--prune)   PRUNE=1; shift ;;
+    --apt)        APT=1; shift ;;
+    -h|--help)    usage; exit 0 ;;
+    *) echo "Unknown option: $1" >&2; usage >&2; exit 1 ;;
+  esac
+done
+
+log()  { printf '==> %s\n' "$*"; }
+warn() { printf '[warn] %s\n' "$*" >&2; }
+
+run_cmd() {
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    printf '[dry-run] %s\n' "$*"
+  else
+    "$@"
+  fi
+}
+
+if command -v mise >/dev/null 2>&1; then
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    log "mise outdated (dry-run)"
+    mise outdated || true
+    log "would run: mise self-update -y && mise upgrade && mise reshim"
+    [[ "$PRUNE" -eq 1 ]] && mise prune --dry-run || true
+  else
+    log "updating mise"
+    mise self-update -y || warn "mise self-update failed"
+    log "upgrading mise-managed tools"
+    mise upgrade || warn "mise upgrade had warnings"
+    mise reshim || true
+    if [[ "$PRUNE" -eq 1 ]]; then
+      log "pruning unused mise tool versions"
+      mise prune -y || warn "mise prune had warnings"
+    fi
+  fi
+else
+  warn "mise not found on PATH"
+fi
+
+if command -v rustup >/dev/null 2>&1; then
+  log "updating rustup"
+  run_cmd rustup self update || warn "rustup self update failed"
+fi
+
+if command -v bun >/dev/null 2>&1; then
+  log "updating bun"
+  run_cmd bun upgrade || warn "bun upgrade failed"
+fi
+
+if command -v elan >/dev/null 2>&1; then
+  log "updating elan"
+  run_cmd elan self update || warn "elan self update failed"
+fi
+
+if command -v herdr >/dev/null 2>&1; then
+  log "updating herdr"
+  run_cmd herdr update || warn "herdr update failed"
+fi
+
+if [[ "$APT" -eq 1 ]]; then
+  log "upgrading apt packages"
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    printf '[dry-run] sudo apt-get update && sudo apt-get upgrade -y\n'
+  else
+    sudo apt-get update && DEBIAN_FRONTEND=noninteractive sudo apt-get upgrade -y || warn "apt upgrade failed"
+  fi
+fi
+
+echo
+log "current versions summary"
+if command -v mise >/dev/null 2>&1; then
+  mise ls --current || true
+fi
+for bin in bun elan herdr; do
+  if command -v "$bin" >/dev/null 2>&1; then
+    printf '%-12s %s\n' "$bin" "$("$bin" --version 2>/dev/null | head -n 1 || echo installed)"
+  fi
+done

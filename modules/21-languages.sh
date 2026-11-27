@@ -12,7 +12,7 @@ run() {
   log "ensuring language runtimes via mise"
   mise install erlang || warn "erlang install had issues"
   mise use -g erlang 2>/dev/null || true
-  mise install node@lts python go rust ruby elixir || \
+  mise install node@lts python go rust mr-boxington ruby elixir || \
     mise install || warn "some language installs failed"
   mise reshim 2>/dev/null || true
 

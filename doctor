@@ -30,7 +30,7 @@ info() { printf '%s==>%s %s\n' "${C_BOLD}" "$C_RESET" "$*"; }
 have() { command -v "$1" >/dev/null 2>&1; }
 
 # Ensure common paths (non-interactive shells often lack mise activation)
-export PATH="${HOME}/bin:${HOME}/.local/bin:${HOME}/.atuin/bin:${HOME}/.grok/bin:${HOME}/.cargo/bin:${PATH}"
+export PATH="${HOME}/.local/share/mise/shims:${HOME}/bin:${HOME}/.local/bin:${HOME}/.atuin/bin:${HOME}/.grok/bin:${HOME}/.cargo/bin:${PATH}"
 if have mise; then
   eval "$(mise activate bash)" 2>/dev/null || true
 elif [[ -x "${HOME}/.local/bin/mise" ]]; then
@@ -247,6 +247,56 @@ if [[ -n "${FNOX_AGE_KEY:-}" ]]; then
 else
   warn "FNOX_AGE_KEY unset here (normal in non-zsh; ok after exec zsh if .zshrc loads it)"
 fi
+
+
+# --- Maintenance & Rust cache ---
+info "maintenance & rust cache"
+if have mbx; then
+  pass "mbx $(mbx --version 2>/dev/null | head -1)"
+else
+  warn "mbx missing (./install --only 20-mise)"
+fi
+if have cargo; then
+  _cargo_path="$(command -v cargo)"
+  case "$_cargo_path" in
+    *mise/command-wrappers*|*mise/shims*)
+      pass "cargo wrapped via mise ($_cargo_path)"
+      ;;
+    *)
+      warn "cargo resolves to $_cargo_path (expected mise wrapper/shim for mbx)"
+      ;;
+  esac
+  unset _cargo_path
+else
+  warn "cargo missing"
+fi
+_check_link "${HOME}/.config/mbx/config.toml" "exe-bootstrap/config/mbx.toml" "~/.config/mbx/config.toml"
+for s in dev-box-update dev-box-cleanup; do
+  if [[ -x "${HOME}/.local/bin/${s}" ]]; then
+    pass "${s} executable"
+  else
+    warn "${s} missing (./install --only 85-maintenance)"
+  fi
+done
+export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+if have systemctl && systemctl --user show-environment >/dev/null 2>&1; then
+  if systemctl --user is-active --quiet dev-box-cleanup.timer; then
+    pass "dev-box-cleanup.timer active"
+  else
+    warn "dev-box-cleanup.timer inactive (./install --only 85-maintenance)"
+  fi
+else
+  skip_msg="systemd --user unavailable"
+  warn "$skip_msg (dev-box-cleanup.timer not checked)"
+  unset skip_msg
+fi
+_root_pct="$(df -P / | awk 'NR==2 {gsub(/%/, "", $5); print $5}')"
+if [[ -n "$_root_pct" && "$_root_pct" -lt 80 ]]; then
+  pass "root disk usage ${_root_pct}% (< 80%)"
+else
+  warn "root disk usage ${_root_pct:-?}% (>= 80% — run dev-box-cleanup)"
+fi
+unset _root_pct
 
 # --- Summary ---
 echo
